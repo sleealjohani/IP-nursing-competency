@@ -1,0 +1,12 @@
+import { useState } from 'react'
+import { Save, Signature } from 'lucide-react'
+import { GlassCard } from '../../components/Ui'
+import { supabase } from '../../lib/supabase'
+import type { EvaluatorProfile } from '../../lib/types'
+import type { Lang } from '../../lib/i18n'
+import { copy } from '../../lib/i18n'
+
+type Props={lang:Lang;userId:string;profile:EvaluatorProfile|null;onSaved:(p:EvaluatorProfile)=>void}
+export function EvaluatorPanel({lang,userId,profile,onSaved}:Props){const t=copy[lang],rtl=lang==='ar';const [name,setName]=useState(profile?.name||''),[job,setJob]=useState(profile?.job_number||''),[title,setTitle]=useState(profile?.job_title||''),[busy,setBusy]=useState(false),[msg,setMsg]=useState('')
+async function save(){if(!name.trim()||!job.trim())return;setBusy(true);setMsg('');let signature_path=profile?.signature_path||null;const file=(document.getElementById('signature-file') as HTMLInputElement)?.files?.[0];if(file){if(file.type!=='image/png'||file.size>1024*1024){setBusy(false);setMsg(rtl?'التوقيع يجب أن يكون PNG وبحجم أقل من 1MB.':'Signature must be PNG under 1 MB.');return}const path=`${userId}/signature.png`;const u=await supabase.storage.from('signatures').upload(path,file,{upsert:true,contentType:'image/png'});if(u.error){setBusy(false);setMsg(u.error.message);return}signature_path=path}const row={user_id:userId,name:name.trim(),job_number:job.trim(),job_title:title.trim()||null,signature_path};const {data,error}=await supabase.from('evaluator_profiles').upsert(row,{onConflict:'user_id'}).select().single();setBusy(false);if(error)setMsg(error.message);else{setMsg(rtl?'تم حفظ بيانات المقيم.':'Evaluator profile saved.');onSaved(data as EvaluatorProfile)}}
+return <GlassCard><div className="panel-title"><div><div className="eyebrow"><Signature size={14}/>{t.evaluatorProfile}</div><h2>{rtl?'بيانات تستخدم تلقائيًا عند الاعتماد':'Details reused at finalization'}</h2></div></div>{msg&&<div className="notice info">{msg}</div>}<div className="form-grid"><label>{rtl?'اسم المقيم':'Evaluator name'}<input value={name} onChange={e=>setName(e.target.value)}/></label><label>{t.jobNumber}<input value={job} onChange={e=>setJob(e.target.value)} dir="ltr"/></label><label>{rtl?'المسمى الوظيفي':'Job title'}<input value={title} onChange={e=>setTitle(e.target.value)}/></label><label>{t.signature}<input id="signature-file" type="file" accept="image/png"/></label></div><button className="primary" onClick={()=>void save()} disabled={busy}><Save size={16}/>{busy?'…':t.save}</button></GlassCard>}
