@@ -1,10 +1,77 @@
 import { useState } from 'react'
-import { LockKeyhole, ShieldCheck } from 'lucide-react'
+import { KeyRound, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { GlassCard } from '../../components/Ui'
 import { supabase } from '../../lib/supabase'
 import type { Lang } from '../../lib/i18n'
 import { copy } from '../../lib/i18n'
 
-export function AuthPanel({lang}:{lang:Lang}){const t=copy[lang],rtl=lang==='ar';const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[mode,setMode]=useState<'in'|'up'>('in'),[busy,setBusy]=useState(false),[msg,setMsg]=useState('')
-async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setMsg('');const result=mode==='in'?await supabase.auth.signInWithPassword({email,password}):await supabase.auth.signUp({email,password});setBusy(false);if(result.error)setMsg(result.error.message);else if(mode==='up'&&!result.data.session)setMsg(rtl?'تم إنشاء الحساب. تحقق من البريد إذا كان تأكيد البريد مفعّلًا، ثم سجل الدخول.':'Account created. Verify your email if confirmation is enabled, then sign in.')}
-return <div className="manager-auth"><GlassCard><div className="badge-icon"><ShieldCheck/></div><div className="eyebrow"><LockKeyhole size={14}/>{t.managerPortal}</div><h1>{t.managerSignIn}</h1><p>{rtl?'الدخول مخصص للمقيمين والمديرين المعتمدين.':'Access is for approved evaluators and administrators.'}</p>{msg&&<div className="notice info">{msg}</div>}<form onSubmit={submit}><label>{t.email}<input type="email" required value={email} onChange={e=>setEmail(e.target.value)} dir="ltr"/></label><label>{t.password}<input type="password" required minLength={6} value={password} onChange={e=>setPassword(e.target.value)} dir="ltr"/></label><button className="primary" disabled={busy}>{busy?'…':mode==='in'?t.signIn:t.signUp}</button></form><button className="text-button" onClick={()=>{setMode(mode==='in'?'up':'in');setMsg('')}}>{mode==='in'?t.signUp:t.signIn}</button></GlassCard></div>}
+export function AuthPanel({lang}:{lang:Lang}) {
+  const t = copy[lang]
+  const rtl = lang === 'ar'
+  const [password,setPassword] = useState('')
+  const [busy,setBusy] = useState(false)
+  const [msg,setMsg] = useState('')
+
+  async function submit(e:React.FormEvent) {
+    e.preventDefault()
+    setBusy(true)
+    setMsg('')
+
+    const { data, error } = await supabase.functions.invoke('evaluator-login', {
+      body: { password }
+    })
+
+    if (error || !data?.ok || !data?.email) {
+      setBusy(false)
+      setMsg(rtl ? 'رمز دخول المقيم غير صحيح.' : 'Incorrect evaluator access code.')
+      return
+    }
+
+    const result = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password,
+    })
+
+    setBusy(false)
+
+    if (result.error) {
+      setMsg(rtl ? 'تعذر تسجيل دخول المقيم. حاول مرة أخرى.' : 'Evaluator sign-in failed. Please try again.')
+    }
+  }
+
+  return (
+    <div className="manager-auth">
+      <GlassCard>
+        <div className="badge-icon"><ShieldCheck/></div>
+        <div className="eyebrow"><LockKeyhole size={14}/>{t.managerPortal}</div>
+        <h1>{t.managerSignIn}</h1>
+        <p>{rtl ? 'أدخل رمز دخول المقيم للوصول إلى لوحة المراجعة والاعتماد.' : 'Enter the evaluator access code to open the review and approval dashboard.'}</p>
+
+        {msg && <div className="notice error">{msg}</div>}
+
+        <form onSubmit={submit}>
+          <label>
+            {rtl ? 'رمز دخول المقيم' : 'Evaluator access code'}
+            <div className="password-field">
+              <KeyRound size={16}/>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={e=>setPassword(e.target.value)}
+                autoComplete="current-password"
+                dir="ltr"
+                placeholder="••••••••••"
+              />
+            </div>
+          </label>
+
+          <button className="primary" disabled={busy}>
+            <KeyRound size={16}/>
+            {busy ? '…' : t.signIn}
+          </button>
+        </form>
+      </GlassCard>
+    </div>
+  )
+}
