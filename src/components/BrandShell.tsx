@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { Activity, Cross, Droplets, HeartPulse, ShieldCheck, Stethoscope } from 'lucide-react'
-import { motion } from 'framer-motion'
 import type { Lang } from '../lib/i18n'
 import { copy } from '../lib/i18n'
 
@@ -22,11 +21,7 @@ export function BrandShell({ children, lang, onLangChange, nav, compact }: Props
       <div className="ambient ambient-b" />
       <div className="floaters" aria-hidden="true">
         {floaters.map((Icon, index) => (
-          <Icon
-            key={index}
-            className={`floater floater-${index + 1}`}
-            strokeWidth={1.4}
-          />
+          <Icon key={index} className={`floater floater-${index + 1}`} strokeWidth={1.4} />
         ))}
       </div>
 
@@ -47,14 +42,9 @@ export function BrandShell({ children, lang, onLangChange, nav, compact }: Props
         </div>
       </header>
 
-      <motion.main
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-        className="app-main"
-      >
+      <main className="app-main page-enter">
         {children}
-      </motion.main>
+      </main>
 
       <footer className="app-footer">
         <span>Clinical Digital Experience</span>
