@@ -15,6 +15,7 @@ Clinical competency assessment system for inpatient nursing.
 - Review and final submission; every form is then listed under the nurse's name for the administration
 - Evaluator portal: per-form review, comments, remedial decision and approval; "Approve all" for every
   submitted nurse (or all forms of one nurse); reopen
+- Delete a participant (all their forms, answers and approvals) from the dashboard or their panel, with confirmation
 - One-click ZIP of approved forms: one PDF per nurse, named after the nurse, with every form approved for them
 - PDF output: each original form filled as if hand-written (blue-ink handwriting, hand-drawn ticks,
   raw score and % rating, remedial decision, comments, evaluator name and signature), downloadable per

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { BadgeCheck, ChevronDown, Download, FileText, Printer, RotateCcw, Save, X } from 'lucide-react'
+import { BadgeCheck, ChevronDown, Download, FileText, Printer, RotateCcw, Save, Trash2, X } from 'lucide-react'
 import { GlassCard, StatusBadge } from '../../components/Ui'
 import { CATEGORY_LABEL, forms, formTitle, itemText } from '../../lib/content'
 import type { AnswerRow, CompetencyForm, EvaluatorProfile, NurseRow, Rating, ReviewRow, SessionRow } from '../../lib/types'
@@ -12,7 +12,7 @@ import type { FillInput } from '../../lib/pdf'
 import { signatureBytes } from '../../lib/signatures'
 import { supabase } from '../../lib/supabase'
 
-type Props={lang:Lang;session:SessionRow;nurse:NurseRow;answers:AnswerRow[];reviews:ReviewRow[];evaluator:EvaluatorProfile|null;onClose:()=>void;onRefresh:()=>Promise<void>}
+type Props={lang:Lang;session:SessionRow;nurse:NurseRow;answers:AnswerRow[];reviews:ReviewRow[];evaluator:EvaluatorProfile|null;onDelete:()=>void;onClose:()=>void;onRefresh:()=>Promise<void>}
 
 const loadPdf=()=>import('../../lib/pdf')
 
@@ -61,7 +61,7 @@ export function SessionPanel(p:Props){
   return createPortal(<div className="drawer-backdrop" dir={rtl?'rtl':'ltr'} onClick={e=>{if(e.target===e.currentTarget)p.onClose()}}><aside className="session-drawer">
     <div className="drawer-head"><div><h2>{p.nurse.name}</h2><small dir="ltr">{p.nurse.job_number}</small></div><button onClick={p.onClose} aria-label="Close"><X/></button></div>
     <div className="nurse-facts"><span><small>{t.unit}</small>{p.nurse.unit||'—'}</span><span><small>{t.jobTitle}</small>{p.nurse.job_title||'—'}</span><span><small>{t.contractDate}</small><b dir="ltr">{formatDate(p.nurse.contract_date)||'—'}</b></span><span><small>{t.submitted}</small><b dir="ltr">{formatDate(p.session.submitted_at)||'—'}</b></span></div>
-    <div className="drawer-actions"><StatusBadge status={p.session.status}/><button className="primary" disabled={!!pdfBusy} onClick={()=>void all()}><Download size={15}/><span>{pdfBusy==='all'?t.preparing:t.downloadAll}</span></button>{p.session.status==='completed'?<button onClick={()=>void status('reopen')}><RotateCcw size={15}/><span>{t.reopen}</span></button>:<button disabled={busy||p.session.status==='in_progress'} title={p.session.status==='in_progress'?(rtl?'لم يرسل الممرض التقييم بعد':'The nurse has not submitted yet'):''} onClick={()=>void status('complete')}><BadgeCheck size={15}/><span>{t.approveAllForms}</span></button>}</div>
+    <div className="drawer-actions"><StatusBadge status={p.session.status}/><button className="primary" disabled={!!pdfBusy} onClick={()=>void all()}><Download size={15}/><span>{pdfBusy==='all'?t.preparing:t.downloadAll}</span></button>{p.session.status==='completed'?<button onClick={()=>void status('reopen')}><RotateCcw size={15}/><span>{t.reopen}</span></button>:<button disabled={busy||p.session.status==='in_progress'} title={p.session.status==='in_progress'?(rtl?'لم يرسل الممرض التقييم بعد':'The nurse has not submitted yet'):''} onClick={()=>void status('complete')}><BadgeCheck size={15}/><span>{t.approveAllForms}</span></button>}<button className="danger" disabled={busy} title={t.deleteParticipant} onClick={p.onDelete}><Trash2 size={15}/><span>{t.deleteParticipant}</span></button></div>
     {msg&&<div className="notice info">{msg}</div>}
     <div className="form-list">{forms.map(f=>{
       const s=scoreForm(f,answers),r=p.reviews.find(x=>x.competency_id===f.id)
