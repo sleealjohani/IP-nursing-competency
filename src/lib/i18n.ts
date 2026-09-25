@@ -2,8 +2,8 @@ export type Lang = 'ar' | 'en'
 
 export const copy = {
   ar: {
-    appName: 'كفاءات التمريض',
-    appDescriptor: 'نظام التقييم السريري للكفاءات',
+    appName: 'كفاءات التمريض للأقسام الداخلية',
+    appDescriptor: 'مستشفى الحديثة العام، إدارة التمريض',
     nursePortal: 'بوابة التمريض',
     managerPortal: 'بوابة المقيم',
     begin: 'بدء تقييم جديد',
@@ -71,6 +71,8 @@ export const copy = {
     downloadAll: 'تنزيل جميع النماذج',
     openForm: 'فتح للطباعة',
     preparing: 'جارٍ تجهيز الملف…',
+    showOriginal: 'عرض النص الأصلي',
+    hideOriginal: 'إخفاء النص الأصلي',
     approveAll: 'اعتماد الكل',
     approveAllForms: 'اعتماد جميع النماذج',
     downloadApprovedZip: 'تنزيل النماذج المعتمدة (ZIP)',
@@ -78,8 +80,8 @@ export const copy = {
     needEvaluator: 'احفظ بيانات المقيم أولًا من صفحة بيانات المقيم.',
   },
   en: {
-    appName: 'Nursing Competency',
-    appDescriptor: 'Clinical Competency Assessment System',
+    appName: 'Inpatient Nursing Competency',
+    appDescriptor: 'Al Hadeethah General Hospital, Nursing Service Department',
     nursePortal: 'Nurse Portal',
     managerPortal: 'Evaluator Portal',
     begin: 'Start new assessment',
@@ -147,6 +149,8 @@ export const copy = {
     downloadAll: 'Download all forms',
     openForm: 'Open to print',
     preparing: 'Preparing file…',
+    showOriginal: 'Show original text',
+    hideOriginal: 'Hide original text',
     approveAll: 'Approve all',
     approveAllForms: 'Approve all forms',
     downloadApprovedZip: 'Download approved forms (ZIP)',

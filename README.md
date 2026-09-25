@@ -19,7 +19,13 @@ Clinical competency assessment system for inpatient nursing.
 - PDF output: each original form filled as if hand-written (blue-ink handwriting, hand-drawn ticks,
   raw score and % rating, remedial decision, comments, evaluator name and signature), downloadable per
   form or as one file with all forms
-- Arabic-first RTL clinical UI with the English source statements preserved exactly as printed
+- Arabic-first RTL UI on the Health Holding identity (IP Nursing Competency design system): navy/sky palette,
+  Health Holding lockup and star, "Flow of care" pattern, the manual's two-colour icons floating gently,
+  competency orbit progress, "Powered by HALRWEOLI" footer
+- Arabic translation of every statement and form title on the website (`scripts/forms/translations_ar.json`),
+  with the original English one tap away; the PDFs always print the original English
+- Font: Janna LT when installed on the device (it is a licensed Linotype face, so it is not shipped in this
+  public repository), otherwise IBM Plex Sans Arabic
 
 ## Competency forms
 
