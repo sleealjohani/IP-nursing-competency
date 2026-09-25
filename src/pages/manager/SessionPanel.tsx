@@ -1,16 +1,94 @@
 import { useMemo, useState } from 'react'
-import { BadgeCheck, FileText, RotateCcw, Save, X } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { BadgeCheck, ChevronDown, Download, FileText, Printer, RotateCcw, Save, X } from 'lucide-react'
 import { GlassCard, StatusBadge } from '../../components/Ui'
-import type { ClinicalContent } from '../../lib/content'
-import type { AnswerRow, Competency, EvaluatorProfile, NurseRow, ReviewRow, SessionRow } from '../../lib/types'
+import { CATEGORY_LABEL, forms } from '../../lib/content'
+import type { AnswerRow, CompetencyForm, EvaluatorProfile, NurseRow, Rating, ReviewRow, SessionRow } from '../../lib/types'
 import type { Lang } from '../../lib/i18n'
 import { copy } from '../../lib/i18n'
-import { percentLabel, scoreQuestions } from '../../lib/scoring'
+import { percentLabel, scoreForm } from '../../lib/scoring'
+import { formatDate } from '../../lib/dates'
+import type { FillInput } from '../../lib/pdf'
 import { supabase } from '../../lib/supabase'
 
-type Props={lang:Lang;content:ClinicalContent;session:SessionRow;nurse:NurseRow;answers:AnswerRow[];reviews:ReviewRow[];evaluator:EvaluatorProfile|null;onClose:()=>void;onRefresh:()=>Promise<void>}
-export function SessionPanel(p:Props){const t=copy[p.lang],rtl=p.lang==='ar';const [active,setActive]=useState(p.content.competencies[0]?.id||''),[comment,setComment]=useState(''),[staff,setStaff]=useState(''),[remedial,setRemedial]=useState(false),[date,setDate]=useState(''),[msg,setMsg]=useState(''),[busy,setBusy]=useState(false);const c=p.content.competencies.find(x=>x.id===active) as Competency|undefined;const qs=useMemo(()=>p.content.questions.filter(q=>q.competency_id===active),[p.content,active]);const map=Object.fromEntries(p.answers.filter(a=>a.competency_id===active).map(a=>[a.question_id,a.answer]));const score=scoreQuestions(qs,map);const review=p.reviews.find(r=>r.competency_id===active)
-function select(id:string){setActive(id);const r=p.reviews.find(x=>x.competency_id===id);setComment(r?.evaluator_comments||'');setStaff(r?.staff_comments||'');setRemedial(!!r?.needs_remedial);setDate(r?.remedial_date||'');setMsg('')}
-async function save(finalize:boolean){if(finalize&&!p.evaluator){setMsg(rtl?'احفظ بيانات المقيم أولًا.':'Save the evaluator profile first.');return}setBusy(true);const {data,error}=await supabase.rpc('staff_save_review',{p_session:p.session.id,p_competency:active,p_evaluator_comments:comment||null,p_staff_comments:staff||null,p_needs_remedial:remedial,p_remedial_date:date||null,p_finalize:finalize});setBusy(false);const d=data as {ok?:boolean;error?:string}|null;if(error||!d?.ok)setMsg(error?.message||d?.error||'Error');else{setMsg(finalize?(rtl?'تم اعتماد الكفاءة.':'Competency finalized.'):(rtl?'تم الحفظ.':'Saved.'));await p.onRefresh()}}
-async function status(action:'reopen'|'complete'){if(action==='complete'&&!p.evaluator){setMsg(rtl?'احفظ بيانات المقيم أولًا.':'Save evaluator profile first.');return}if(!confirm(action==='complete'?(rtl?'اعتماد الجلسة كاملة وإغلاقها؟':'Complete and lock the full session?'):(rtl?'إعادة فتح الجلسة للممرض؟':'Reopen this session?')))return;setBusy(true);const {data,error}=await supabase.rpc('staff_set_status',{p_session:p.session.id,p_action:action,p_reason:null});setBusy(false);const d=data as {ok?:boolean;error?:string}|null;if(error||!d?.ok)setMsg(error?.message||d?.error||'Error');else{await p.onRefresh();p.onClose()}}
-return <div className="drawer-backdrop"><aside className="session-drawer"><div className="drawer-head"><div><h2>{p.nurse.name}</h2><small dir="ltr">{p.nurse.job_number}</small></div><button onClick={p.onClose}><X/></button></div><div className="drawer-actions"><StatusBadge status={p.session.status}/><button onClick={()=>window.open(`/print/${p.session.id}`,'_blank')}><FileText size={15}/>{t.print}</button>{p.session.status==='completed'?<button onClick={()=>void status('reopen')}><RotateCcw size={15}/>{t.reopen}</button>:<button className="primary" onClick={()=>void status('complete')}><BadgeCheck size={15}/>{t.complete}</button>}</div>{msg&&<div className="notice info">{msg}</div>}<div className="competency-tabs">{p.content.competencies.map(x=><button key={x.id} className={active===x.id?'active':''} onClick={()=>select(x.id)}>{x.code}</button>)}</div>{c&&<GlassCard className="review-card"><h3 dir="ltr">{c.title}</h3><div className="score-strip"><span>M <b>{score.m}</b></span><span>NM <b>{score.nm}</b></span><span>NA <b>{score.na}</b></span><span>% <b>{percentLabel(score.percent)}</b></span></div><div className="answer-list">{qs.map(q=><div key={q.id}><span dir="ltr">{q.number}. {q.text}</span><b className={`answer answer-${(map[q.id]||'none').toLowerCase()}`}>{map[q.id]||'—'}</b></div>)}</div><label>{t.comments}<textarea value={comment} onChange={e=>setComment(e.target.value)}/></label><label>{t.staffComments}<textarea value={staff} onChange={e=>setStaff(e.target.value)}/></label><div className="form-grid"><label className="check-label"><input type="checkbox" checked={remedial} onChange={e=>setRemedial(e.target.checked)}/>{t.remedial}</label><label>{t.remedialDate}<input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label></div><div className="row"><button onClick={()=>void save(false)} disabled={busy}><Save size={15}/>{t.save}</button><button className="primary" onClick={()=>void save(true)} disabled={busy||!!review?.finalized}><BadgeCheck size={15}/>{review?.finalized?t.completed:t.finalize}</button></div></GlassCard>}</aside></div>}
+type Props={lang:Lang;session:SessionRow;nurse:NurseRow;answers:AnswerRow[];reviews:ReviewRow[];evaluator:EvaluatorProfile|null;onClose:()=>void;onRefresh:()=>Promise<void>}
+
+const loadPdf=()=>import('../../lib/pdf')
+const signatureCache=new Map<string,Promise<Uint8Array|null>>()
+function signatureBytes(path?:string|null){
+  if(!path)return Promise.resolve(null)
+  if(!signatureCache.has(path))signatureCache.set(path,(async()=>{const {data}=await supabase.storage.from('signatures').download(path);return data?new Uint8Array(await data.arrayBuffer()):null})())
+  return signatureCache.get(path)!
+}
+
+export function SessionPanel(p:Props){
+  const t=copy[p.lang],rtl=p.lang==='ar'
+  const answers=useMemo(()=>Object.fromEntries(p.answers.map(a=>[a.question_id,a.answer])) as Record<string,Rating>,[p.answers])
+  const [open,setOpen]=useState<string|null>(null)
+  const [comment,setComment]=useState(''),[staff,setStaff]=useState(''),[remedial,setRemedial]=useState(false),[date,setDate]=useState('')
+  const [msg,setMsg]=useState(''),[busy,setBusy]=useState(false),[pdfBusy,setPdfBusy]=useState<string|null>(null)
+  const fileBase=`${p.nurse.name} (${p.nurse.job_number})`
+
+  function toggle(f:CompetencyForm){
+    if(open===f.id){setOpen(null);return}
+    const r=p.reviews.find(x=>x.competency_id===f.id)
+    const s=scoreForm(f,answers)
+    setOpen(f.id);setComment(r?.evaluator_comments||'');setStaff(r?.staff_comments||'')
+    setRemedial(r?.needs_remedial??(s.percent!==null&&s.percent<90));setDate(r?.remedial_date||'');setMsg('')
+  }
+
+  async function input(f:CompetencyForm):Promise<FillInput>{
+    const review=p.reviews.find(x=>x.competency_id===f.id)||null
+    const evaluator=review?.evaluator_snapshot||null
+    return {form:f,nurse:p.nurse,answers,review,evaluator,evaluatorSignature:await signatureBytes(evaluator?.signature_path),confirmedAt:p.session.submitted_at}
+  }
+  async function one(f:CompetencyForm,mode:'download'|'open'){
+    setPdfBusy(f.id);setMsg('')
+    try{const pdf=await loadPdf();const bytes=await pdf.formPdf(await input(f));if(mode==='open')pdf.openPdf(bytes);else pdf.downloadPdf(bytes,`${f.title} - ${fileBase}.pdf`)}
+    catch(e){setMsg(e instanceof Error?e.message:String(e))}
+    setPdfBusy(null)
+  }
+  async function all(){
+    setPdfBusy('all');setMsg('')
+    try{
+      const pdf=await loadPdf()
+      const inputs=await Promise.all(forms.map(input))
+      const bytes=await pdf.bundlePdf(inputs,`Competency forms — ${fileBase}`,(d,n)=>setMsg(`${t.preparing} ${d}/${n}`))
+      pdf.downloadPdf(bytes,`Competency forms - ${fileBase}.pdf`);setMsg('')
+    }catch(e){setMsg(e instanceof Error?e.message:String(e))}
+    setPdfBusy(null)
+  }
+
+  async function save(f:CompetencyForm,finalize:boolean){if(finalize&&!p.evaluator){setMsg(rtl?'احفظ بيانات المقيم أولًا.':'Save the evaluator profile first.');return}setBusy(true);const {data,error}=await supabase.rpc('staff_save_review',{p_session:p.session.id,p_competency:f.id,p_evaluator_comments:comment||null,p_staff_comments:staff||null,p_needs_remedial:remedial,p_remedial_date:date||null,p_finalize:finalize});setBusy(false);const d=data as {ok?:boolean;error?:string}|null;if(error||!d?.ok)setMsg(error?.message||d?.error||'Error');else{setMsg(finalize?(rtl?'تم اعتماد الكفاءة.':'Competency finalized.'):(rtl?'تم الحفظ.':'Saved.'));await p.onRefresh()}}
+  async function status(action:'reopen'|'complete'){if(action==='complete'&&!p.evaluator){setMsg(rtl?'احفظ بيانات المقيم أولًا.':'Save evaluator profile first.');return}if(!confirm(action==='complete'?(rtl?'اعتماد الجلسة كاملة وإغلاقها؟':'Complete and lock the full session?'):(rtl?'إعادة فتح الجلسة للممرض؟':'Reopen this session?')))return;setBusy(true);const {data,error}=await supabase.rpc('staff_set_status',{p_session:p.session.id,p_action:action,p_reason:null});setBusy(false);const d=data as {ok?:boolean;error?:string}|null;if(error||!d?.ok)setMsg(error?.message||d?.error||'Error');else{await p.onRefresh();p.onClose()}}
+
+  let lastCategory=''
+  return createPortal(<div className="drawer-backdrop" dir={rtl?'rtl':'ltr'} onClick={e=>{if(e.target===e.currentTarget)p.onClose()}}><aside className="session-drawer">
+    <div className="drawer-head"><div><h2>{p.nurse.name}</h2><small dir="ltr">{p.nurse.job_number}</small></div><button onClick={p.onClose} aria-label="Close"><X/></button></div>
+    <div className="nurse-facts"><span><small>{t.unit}</small>{p.nurse.unit||'—'}</span><span><small>{t.jobTitle}</small>{p.nurse.job_title||'—'}</span><span><small>{t.contractDate}</small><b dir="ltr">{formatDate(p.nurse.contract_date)||'—'}</b></span><span><small>{t.submitted}</small><b dir="ltr">{formatDate(p.session.submitted_at)||'—'}</b></span></div>
+    <div className="drawer-actions"><StatusBadge status={p.session.status}/><button className="primary" disabled={!!pdfBusy} onClick={()=>void all()}><Download size={15}/><span>{pdfBusy==='all'?t.preparing:t.downloadAll}</span></button>{p.session.status==='completed'?<button onClick={()=>void status('reopen')}><RotateCcw size={15}/><span>{t.reopen}</span></button>:<button onClick={()=>void status('complete')}><BadgeCheck size={15}/><span>{t.complete}</span></button>}</div>
+    {msg&&<div className="notice info">{msg}</div>}
+    <div className="form-list">{forms.map(f=>{
+      const s=scoreForm(f,answers),r=p.reviews.find(x=>x.competency_id===f.id)
+      const cat=CATEGORY_LABEL[f.category]
+      const head=f.category!==lastCategory?<div className="review-group" key={`g-${f.category}`}>{rtl?cat?.ar:cat?.en}</div>:null
+      lastCategory=f.category
+      return [head,<GlassCard key={f.id} className={`form-row ${open===f.id?'open':''}`}>
+        <div className="form-row-head">
+          <button className="form-row-title" onClick={()=>toggle(f)}><FileText size={16}/><span><b dir="ltr">{f.title}</b><small dir="ltr">{f.code} · {s.answered}/{s.total}{f.scale==='mnmna'?` · M ${s.counts.M} · NM ${s.counts.NM} · NA ${s.counts.NA}`:` · VT ${s.counts.VT} · RD ${s.counts.RD} · UEC ${s.counts.UEC}`}</small></span><ChevronDown size={16} className="chev"/></button>
+          <strong className={`score score-${s.result.toLowerCase().replace(' ','-')}`} dir="ltr">{s.result==='Incomplete'?'—':f.scale==='equipment'?'✓':percentLabel(s.percent)}</strong>
+          {r?.finalized&&<BadgeCheck size={16} className="finalized" aria-label={t.completed}/>}
+          <button className="icon-btn" title={t.openForm} disabled={!!pdfBusy} onClick={()=>void one(f,'open')}><Printer size={15}/></button>
+          <button className="icon-btn" title={t.downloadForm} disabled={!!pdfBusy} onClick={()=>void one(f,'download')}>{pdfBusy===f.id?'…':<Download size={15}/>}</button>
+        </div>
+        {open===f.id&&<div className="form-row-body">
+          <div className="answer-list">{f.sections.flatMap(sec=>sec.items.map(q=><div key={q.id}><span dir="ltr">{sec.numeral} {q.label} {q.text}</span><b className={`answer answer-${(answers[q.id]||'none').toLowerCase()}`}>{answers[q.id]||'—'}</b></div>))}</div>
+          <label>{t.comments}<textarea value={comment} onChange={e=>setComment(e.target.value)} maxLength={220}/></label>
+          <label>{t.staffComments}<textarea value={staff} onChange={e=>setStaff(e.target.value)} maxLength={220}/></label>
+          <div className="form-grid"><label className="check-label"><input type="checkbox" checked={remedial} onChange={e=>setRemedial(e.target.checked)}/>{t.remedial}</label><label>{t.remedialDate}<input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label></div>
+          <div className="row"><button onClick={()=>void save(f,false)} disabled={busy}><Save size={15}/>{t.save}</button><button className="primary" onClick={()=>void save(f,true)} disabled={busy||!!r?.finalized}><BadgeCheck size={15}/>{r?.finalized?t.completed:t.finalize}</button></div>
+        </div>}
+      </GlassCard>]
+    })}</div>
+  </aside></div>,document.body)
+}

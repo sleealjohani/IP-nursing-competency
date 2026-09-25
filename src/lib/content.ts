@@ -1,31 +1,46 @@
-import { supabase } from './supabase'
-import type { Competency, CompetencyQuestion, CompetencySection } from './types'
+import catalog from '../data/catalog.json'
+import type { CompetencyForm, FormItem, FormSection, Rating, Scale } from './types'
 
-export type ClinicalContent = {
-  competencies: Competency[]
-  sections: CompetencySection[]
-  questions: CompetencyQuestion[]
+/** All competency forms, in questionnaire order. Generated from the PDF templates by scripts/forms/build_catalog.py. */
+export const forms = (catalog as { forms: CompetencyForm[] }).forms
+
+export type Question = FormItem & {
+  form: CompetencyForm
+  section: FormSection
+  /** position in the whole questionnaire */
+  index: number
+  formIndex: number
+  /** position inside its own form */
+  position: number
+  formTotal: number
 }
 
-let cache: ClinicalContent | null = null
+export const questions: Question[] = []
+forms.forEach((form, formIndex) => {
+  const items = form.sections.flatMap(section => section.items.map(item => ({ item, section })))
+  items.forEach(({ item, section }, position) => {
+    questions.push({ ...item, form, section, index: questions.length, formIndex, position, formTotal: items.length })
+  })
+})
 
-export async function loadClinicalContent(): Promise<ClinicalContent> {
-  if (cache) return cache
+export const formQuestions = (form: CompetencyForm) => questions.filter(q => q.form.id === form.id)
 
-  const [competenciesResult, sectionsResult, questionsResult] = await Promise.all([
-    supabase.from('competencies').select('*').eq('is_active', true).order('sort_order'),
-    supabase.from('competency_sections').select('*').order('sort_order'),
-    supabase.from('competency_questions').select('*').order('sort_order'),
-  ])
+export const SCALE_OPTIONS: Record<Scale, Rating[]> = {
+  mnmna: ['M', 'NM', 'NA'],
+  equipment: ['VT', 'RD', 'UEC'],
+}
 
-  if (competenciesResult.error) throw competenciesResult.error
-  if (sectionsResult.error) throw sectionsResult.error
-  if (questionsResult.error) throw questionsResult.error
+export const RATING_LABEL: Record<Rating, string> = {
+  M: 'Met',
+  NM: 'Not Met',
+  NA: 'Not Applicable',
+  VT: 'Training given to staff by the vendor',
+  RD: 'Repeats a demonstration with little supervision',
+  UEC: 'Uses the equipment independently',
+}
 
-  cache = {
-    competencies: (competenciesResult.data || []) as Competency[],
-    sections: (sectionsResult.data || []) as CompetencySection[],
-    questions: (questionsResult.data || []) as CompetencyQuestion[],
-  }
-  return cache
+export const CATEGORY_LABEL: Record<string, { ar: string; en: string }> = {
+  'MANDATORY COMPETENCY': { ar: 'كفاءة إلزامية', en: 'Mandatory competency' },
+  'GENERAL COMPETENCY': { ar: 'كفاءة عامة', en: 'General competency' },
+  'SPECIFIC COMPETENCY': { ar: 'كفاءة تخصصية — قسم الإقامة الطويلة', en: 'Specific competency — Long stay' },
 }

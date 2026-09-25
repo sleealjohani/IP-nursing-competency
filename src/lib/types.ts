@@ -1,39 +1,52 @@
-export type Rating = 'M' | 'NM' | 'NA'
+export type Rating = 'M' | 'NM' | 'NA' | 'VT' | 'RD' | 'UEC'
 
-export type Competency = {
+export type Scale = 'mnmna' | 'equipment'
+
+export type SectionKey = 'knowledge' | 'skills' | 'attitude' | 'equipment'
+
+export type FormItem = {
+  id: string
+  /** AcroForm field prefix on the PDF template, e.g. "knowledge_3" or "eq_7" */
+  field: string
+  n: number
+  /** Number exactly as printed in the first column of the form */
+  label: string
+  text: string
+}
+
+export type FormSection = {
+  key: SectionKey
+  numeral: string
+  title: string
+  items: FormItem[]
+}
+
+export type CompetencyForm = {
   id: string
   code: string
   title: string
-  sort_order: number
-  template_file: string
-  page_count: number
-  question_count: number
-  competency_type: string
-  is_active: boolean
-}
-
-export type CompetencySection = {
-  id: string
-  competency_id: string
-  section_key: 'knowledge' | 'skills' | 'attitude'
-  numeral: string
-  title: string
-  sort_order: number
-}
-
-export type CompetencyQuestion = {
-  id: string
-  competency_id: string
-  section_id: string
-  number: number
-  text: string
-  sort_order: number
-  needs_source_review: boolean
+  category: string
+  department: string | null
+  file: string
+  scale: Scale
+  pages: number
+  sections: FormSection[]
 }
 
 export type NurseIdentity = {
   name: string
   job_number: string
+  unit?: string | null
+  job_title?: string | null
+  contract_date?: string | null
+}
+
+export type NurseStartInput = {
+  name: string
+  job_number: string
+  unit: string
+  job_title: string
+  contract_date: string
 }
 
 export type NurseSessionPayload = {
@@ -46,6 +59,7 @@ export type NurseSessionPayload = {
   answers?: Record<string, Rating>
   error?: string
   missing?: number
+  saved?: number
   token?: string
 }
 
@@ -78,6 +92,14 @@ export type AnswerRow = {
   answered_at: string
 }
 
+export type EvaluatorSnapshot = {
+  name?: string
+  job_number?: string
+  job_title?: string | null
+  signature_path?: string | null
+  captured_at?: string
+}
+
 export type ReviewRow = {
   id: string
   session_id: string
@@ -88,7 +110,7 @@ export type ReviewRow = {
   remedial_date: string | null
   finalized: boolean
   finalized_at: string | null
-  evaluator_snapshot: Record<string, unknown> | null
+  evaluator_snapshot: EvaluatorSnapshot | null
 }
 
 export type EvaluatorProfile = {
@@ -102,11 +124,13 @@ export type EvaluatorProfile = {
 }
 
 export type Score = {
-  m: number
-  nm: number
-  na: number
+  counts: Record<Rating, number>
   answered: number
+  total: number
+  /** M count — the form's "Raw Score" */
+  raw: number
+  /** M + NM — NA entries are deducted from the total score */
   totalApplicable: number
   percent: number | null
-  result: 'Met' | 'Not Met' | 'Incomplete'
+  result: 'Met' | 'Not Met' | 'Complete' | 'Incomplete'
 }
