@@ -71,6 +71,11 @@ export const copy = {
     downloadAll: 'تنزيل جميع النماذج',
     openForm: 'فتح للطباعة',
     preparing: 'جارٍ تجهيز الملف…',
+    approveAll: 'اعتماد الكل',
+    approveAllForms: 'اعتماد جميع النماذج',
+    downloadApprovedZip: 'تنزيل النماذج المعتمدة (ZIP)',
+    noApproved: 'لا توجد نماذج معتمدة بعد.',
+    needEvaluator: 'احفظ بيانات المقيم أولًا من صفحة بيانات المقيم.',
   },
   en: {
     appName: 'Nursing Competency',
@@ -142,5 +147,10 @@ export const copy = {
     downloadAll: 'Download all forms',
     openForm: 'Open to print',
     preparing: 'Preparing file…',
+    approveAll: 'Approve all',
+    approveAllForms: 'Approve all forms',
+    downloadApprovedZip: 'Download approved forms (ZIP)',
+    noApproved: 'No approved forms yet.',
+    needEvaluator: 'Save the evaluator profile first (Evaluator profile page).',
   },
 } as const

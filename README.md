@@ -13,7 +13,9 @@ Clinical competency assessment system for inpatient nursing.
   one continuous questionnaire that moves from form to form automatically
 - Autosave through secured Supabase RPC functions, resume code for interrupted assessments
 - Review and final submission; every form is then listed under the nurse's name for the administration
-- Evaluator portal: per-form review, comments, remedial decision, finalization, reopen / complete
+- Evaluator portal: per-form review, comments, remedial decision and approval; "Approve all" for every
+  submitted nurse (or all forms of one nurse); reopen
+- One-click ZIP of approved forms: one PDF per nurse, named after the nurse, with every form approved for them
 - PDF output: each original form filled as if hand-written (blue-ink handwriting, hand-drawn ticks,
   raw score and % rating, remedial decision, comments, evaluator name and signature), downloadable per
   form or as one file with all forms

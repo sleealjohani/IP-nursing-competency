@@ -9,17 +9,12 @@ import { copy } from '../../lib/i18n'
 import { percentLabel, scoreForm } from '../../lib/scoring'
 import { formatDate } from '../../lib/dates'
 import type { FillInput } from '../../lib/pdf'
+import { signatureBytes } from '../../lib/signatures'
 import { supabase } from '../../lib/supabase'
 
 type Props={lang:Lang;session:SessionRow;nurse:NurseRow;answers:AnswerRow[];reviews:ReviewRow[];evaluator:EvaluatorProfile|null;onClose:()=>void;onRefresh:()=>Promise<void>}
 
 const loadPdf=()=>import('../../lib/pdf')
-const signatureCache=new Map<string,Promise<Uint8Array|null>>()
-function signatureBytes(path?:string|null){
-  if(!path)return Promise.resolve(null)
-  if(!signatureCache.has(path))signatureCache.set(path,(async()=>{const {data}=await supabase.storage.from('signatures').download(path);return data?new Uint8Array(await data.arrayBuffer()):null})())
-  return signatureCache.get(path)!
-}
 
 export function SessionPanel(p:Props){
   const t=copy[p.lang],rtl=p.lang==='ar'
@@ -60,13 +55,13 @@ export function SessionPanel(p:Props){
   }
 
   async function save(f:CompetencyForm,finalize:boolean){if(finalize&&!p.evaluator){setMsg(rtl?'احفظ بيانات المقيم أولًا.':'Save the evaluator profile first.');return}setBusy(true);const {data,error}=await supabase.rpc('staff_save_review',{p_session:p.session.id,p_competency:f.id,p_evaluator_comments:comment||null,p_staff_comments:staff||null,p_needs_remedial:remedial,p_remedial_date:date||null,p_finalize:finalize});setBusy(false);const d=data as {ok?:boolean;error?:string}|null;if(error||!d?.ok)setMsg(error?.message||d?.error||'Error');else{setMsg(finalize?(rtl?'تم اعتماد الكفاءة.':'Competency finalized.'):(rtl?'تم الحفظ.':'Saved.'));await p.onRefresh()}}
-  async function status(action:'reopen'|'complete'){if(action==='complete'&&!p.evaluator){setMsg(rtl?'احفظ بيانات المقيم أولًا.':'Save evaluator profile first.');return}if(!confirm(action==='complete'?(rtl?'اعتماد الجلسة كاملة وإغلاقها؟':'Complete and lock the full session?'):(rtl?'إعادة فتح الجلسة للممرض؟':'Reopen this session?')))return;setBusy(true);const {data,error}=await supabase.rpc('staff_set_status',{p_session:p.session.id,p_action:action,p_reason:null});setBusy(false);const d=data as {ok?:boolean;error?:string}|null;if(error||!d?.ok)setMsg(error?.message||d?.error||'Error');else{await p.onRefresh();p.onClose()}}
+  async function status(action:'reopen'|'complete'){if(action==='complete'&&!p.evaluator){setMsg(t.needEvaluator);return}if(!confirm(action==='complete'?(rtl?`اعتماد جميع النماذج (${forms.length}) للممرض/ة ${p.nurse.name} وإغلاق التقييم؟`:`Approve all ${forms.length} forms for ${p.nurse.name} and lock the assessment?`):(rtl?'إعادة فتح الجلسة للممرض؟':'Reopen this session?')))return;setBusy(true);const {data,error}=action==='complete'?await supabase.rpc('staff_approve_sessions',{p_sessions:[p.session.id]}):await supabase.rpc('staff_set_status',{p_session:p.session.id,p_action:action,p_reason:null});setBusy(false);const d=data as {ok?:boolean;error?:string}|null;if(error||!d?.ok)setMsg(error?.message||d?.error||'Error');else{await p.onRefresh();p.onClose()}}
 
   let lastCategory=''
   return createPortal(<div className="drawer-backdrop" dir={rtl?'rtl':'ltr'} onClick={e=>{if(e.target===e.currentTarget)p.onClose()}}><aside className="session-drawer">
     <div className="drawer-head"><div><h2>{p.nurse.name}</h2><small dir="ltr">{p.nurse.job_number}</small></div><button onClick={p.onClose} aria-label="Close"><X/></button></div>
     <div className="nurse-facts"><span><small>{t.unit}</small>{p.nurse.unit||'—'}</span><span><small>{t.jobTitle}</small>{p.nurse.job_title||'—'}</span><span><small>{t.contractDate}</small><b dir="ltr">{formatDate(p.nurse.contract_date)||'—'}</b></span><span><small>{t.submitted}</small><b dir="ltr">{formatDate(p.session.submitted_at)||'—'}</b></span></div>
-    <div className="drawer-actions"><StatusBadge status={p.session.status}/><button className="primary" disabled={!!pdfBusy} onClick={()=>void all()}><Download size={15}/><span>{pdfBusy==='all'?t.preparing:t.downloadAll}</span></button>{p.session.status==='completed'?<button onClick={()=>void status('reopen')}><RotateCcw size={15}/><span>{t.reopen}</span></button>:<button onClick={()=>void status('complete')}><BadgeCheck size={15}/><span>{t.complete}</span></button>}</div>
+    <div className="drawer-actions"><StatusBadge status={p.session.status}/><button className="primary" disabled={!!pdfBusy} onClick={()=>void all()}><Download size={15}/><span>{pdfBusy==='all'?t.preparing:t.downloadAll}</span></button>{p.session.status==='completed'?<button onClick={()=>void status('reopen')}><RotateCcw size={15}/><span>{t.reopen}</span></button>:<button disabled={busy||p.session.status==='in_progress'} title={p.session.status==='in_progress'?(rtl?'لم يرسل الممرض التقييم بعد':'The nurse has not submitted yet'):''} onClick={()=>void status('complete')}><BadgeCheck size={15}/><span>{t.approveAllForms}</span></button>}</div>
     {msg&&<div className="notice info">{msg}</div>}
     <div className="form-list">{forms.map(f=>{
       const s=scoreForm(f,answers),r=p.reviews.find(x=>x.competency_id===f.id)

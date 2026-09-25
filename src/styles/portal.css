@@ -33,3 +33,4 @@
 @media(max-width:650px){.form-pair{grid-template-columns:1fr}.nurse-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.form-banner b{font-size:13px}.question-text .question-line{font-size:.8em}}
 .question-text.medium{font-size:clamp(18px,2.4vw,24px);padding:40px 6px 34px}.question-text.long{font-size:clamp(15px,1.8vw,18px);font-weight:500;padding:26px 6px 26px;letter-spacing:0}.question-text.long .question-line{font-size:.92em}
 @media(max-width:650px){.rating-grid kbd{display:none}}
+.page-title .row{flex-wrap:wrap;justify-content:flex-end}.page-title .row button{white-space:nowrap}
