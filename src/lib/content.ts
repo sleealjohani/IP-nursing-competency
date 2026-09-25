@@ -39,6 +39,19 @@ export const RATING_LABEL: Record<Rating, string> = {
   UEC: 'Uses the equipment independently',
 }
 
+export const RATING_LABEL_AR: Record<Rating, string> = {
+  M: 'مستوفى',
+  NM: 'غير مستوفى',
+  NA: 'لا ينطبق',
+  VT: 'تدريب من المورّد',
+  RD: 'يعيد العرض بإشراف بسيط',
+  UEC: 'يستخدم الجهاز باستقلالية',
+}
+
+/** Arabic on the Arabic website; the original English everywhere else (and always on the PDF). */
+export const formTitle = (form: CompetencyForm, rtl: boolean) => (rtl && form.title_ar) || form.title
+export const itemText = (item: FormItem, rtl: boolean) => (rtl && item.text_ar) || item.text
+
 export const CATEGORY_LABEL: Record<string, { ar: string; en: string }> = {
   'MANDATORY COMPETENCY': { ar: 'كفاءة إلزامية', en: 'Mandatory competency' },
   'GENERAL COMPETENCY': { ar: 'كفاءة عامة', en: 'General competency' },

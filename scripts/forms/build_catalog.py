@@ -233,6 +233,18 @@ def migration(forms):
 
 if __name__ == '__main__':
     forms = build()
+    # Arabic shown on the website only (the PDFs always print the original English).
+    ar = json.load(open(os.path.join(HERE, 'translations_ar.json')))
+    missing = []
+    for f in forms:
+        f['title_ar'] = ar['titles'].get(f['title'])
+        for s in f['sections']:
+            for it in s['items']:
+                it['text_ar'] = ar['statements'].get(it['text'])
+                if not it['text_ar']:
+                    missing.append(it['id'])
+    if missing:
+        print(f'WARNING: {len(missing)} statements have no Arabic translation, e.g. {missing[:5]}')
     catalog = {'forms': forms}
     with open(os.path.join(ROOT, 'src', 'data', 'catalog.json'), 'w') as fh:
         json.dump(catalog, fh, ensure_ascii=False, indent=1)

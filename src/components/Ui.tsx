@@ -14,9 +14,18 @@ export function Spinner({ label = 'Loading…' }: { label?: string }) {
   )
 }
 
+const STATUS_LABEL: Record<string, { ar: string; en: string }> = {
+  in_progress: { ar: 'قيد التقييم', en: 'In progress' },
+  submitted: { ar: 'بانتظار المراجعة', en: 'Awaiting review' },
+  completed: { ar: 'معتمد', en: 'Approved' },
+  reopened: { ar: 'أعيد فتحه', en: 'Reopened' },
+}
+
 export function StatusBadge({ status }: { status: string }) {
   const normalized = status.toLowerCase().replaceAll(' ', '-')
-  return <span className={`status-badge status-${normalized}`}>{status}</span>
+  const label = STATUS_LABEL[status]
+  const text = label ? (document.documentElement.lang === 'ar' ? label.ar : label.en) : status
+  return <span className={`status-badge status-${normalized}`}>{text}</span>
 }
 
 export function Metric({ value, label }: { value: ReactNode; label: string }) {

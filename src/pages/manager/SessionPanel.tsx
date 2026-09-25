@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { BadgeCheck, ChevronDown, Download, FileText, Printer, RotateCcw, Save, X } from 'lucide-react'
 import { GlassCard, StatusBadge } from '../../components/Ui'
-import { CATEGORY_LABEL, forms } from '../../lib/content'
+import { CATEGORY_LABEL, forms, formTitle, itemText } from '../../lib/content'
 import type { AnswerRow, CompetencyForm, EvaluatorProfile, NurseRow, Rating, ReviewRow, SessionRow } from '../../lib/types'
 import type { Lang } from '../../lib/i18n'
 import { copy } from '../../lib/i18n'
@@ -70,14 +70,14 @@ export function SessionPanel(p:Props){
       lastCategory=f.category
       return [head,<GlassCard key={f.id} className={`form-row ${open===f.id?'open':''}`}>
         <div className="form-row-head">
-          <button className="form-row-title" onClick={()=>toggle(f)}><FileText size={16}/><span><b dir="ltr">{f.title}</b><small dir="ltr">{f.code} · {s.answered}/{s.total}{f.scale==='mnmna'?` · M ${s.counts.M} · NM ${s.counts.NM} · NA ${s.counts.NA}`:` · VT ${s.counts.VT} · RD ${s.counts.RD} · UEC ${s.counts.UEC}`}</small></span><ChevronDown size={16} className="chev"/></button>
+          <button className="form-row-title" onClick={()=>toggle(f)}><FileText size={16}/><span><b dir={rtl&&f.title_ar?'rtl':'ltr'}>{formTitle(f,rtl)}</b><small dir="ltr">{f.code} · {s.answered}/{s.total}{f.scale==='mnmna'?` · M ${s.counts.M} · NM ${s.counts.NM} · NA ${s.counts.NA}`:` · VT ${s.counts.VT} · RD ${s.counts.RD} · UEC ${s.counts.UEC}`}</small></span><ChevronDown size={16} className="chev"/></button>
           <strong className={`score score-${s.result.toLowerCase().replace(' ','-')}`} dir="ltr">{s.result==='Incomplete'?'—':f.scale==='equipment'?'✓':percentLabel(s.percent)}</strong>
           {r?.finalized&&<BadgeCheck size={16} className="finalized" aria-label={t.completed}/>}
           <button className="icon-btn" title={t.openForm} disabled={!!pdfBusy} onClick={()=>void one(f,'open')}><Printer size={15}/></button>
           <button className="icon-btn" title={t.downloadForm} disabled={!!pdfBusy} onClick={()=>void one(f,'download')}>{pdfBusy===f.id?'…':<Download size={15}/>}</button>
         </div>
         {open===f.id&&<div className="form-row-body">
-          <div className="answer-list">{f.sections.flatMap(sec=>sec.items.map(q=><div key={q.id}><span dir="ltr">{sec.numeral} {q.label} {q.text}</span><b className={`answer answer-${(answers[q.id]||'none').toLowerCase()}`}>{answers[q.id]||'—'}</b></div>))}</div>
+          <div className="answer-list">{f.sections.flatMap(sec=>sec.items.map(q=><div key={q.id}><span dir={rtl&&q.text_ar?'rtl':'ltr'} style={{whiteSpace:'pre-line'}}><b dir="ltr">{sec.numeral} {q.label}</b> {itemText(q,rtl)}</span><b className={`answer answer-${(answers[q.id]||'none').toLowerCase()}`}>{answers[q.id]||'—'}</b></div>))}</div>
           <label>{t.comments}<textarea value={comment} onChange={e=>setComment(e.target.value)} maxLength={220}/></label>
           <label>{t.staffComments}<textarea value={staff} onChange={e=>setStaff(e.target.value)} maxLength={220}/></label>
           <div className="form-grid"><label className="check-label"><input type="checkbox" checked={remedial} onChange={e=>setRemedial(e.target.checked)}/>{t.remedial}</label><label>{t.remedialDate}<input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label></div>

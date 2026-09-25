@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { Activity, Cross, Droplets, HeartPulse, ShieldCheck, Stethoscope } from 'lucide-react'
 import type { Lang } from '../lib/i18n'
 import { copy } from '../lib/i18n'
 
@@ -11,24 +10,24 @@ type Props = {
   compact?: boolean
 }
 
-const floaters = [Activity, Cross, Droplets, HeartPulse, ShieldCheck, Stethoscope]
+/** Health Holding two-colour line icons from the identity manual, floating gently behind the page. */
+const floaters = ['health', 'injection', 'medicine', 'facility', 'customer-service', 'system-operation']
 
-export function BrandShell({ children, lang, onLangChange, nav, compact }: Props) {
+export function BrandShell({ children, lang, onLangChange, nav }: Props) {
   const t = copy[lang]
   return (
     <div className="app-shell" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      <div className="ambient ambient-a" />
-      <div className="ambient ambient-b" />
       <div className="floaters" aria-hidden="true">
-        {floaters.map((Icon, index) => (
-          <Icon key={index} className={`floater floater-${index + 1}`} strokeWidth={1.4} />
+        {floaters.map((name, index) => (
+          <img key={name} src={`/brand/icons/${name}.png`} alt="" className={`floater floater-${index + 1}`} />
         ))}
       </div>
 
-      <header className={`app-header ${compact ? 'compact' : ''}`}>
-        <a className="brand" href="/" aria-label="Nursing Competency home">
-          <span className="brand-mark"><HeartPulse size={22} /></span>
-          <span>
+      <header className="app-header">
+        <a className="brand" href="/" aria-label={t.appName}>
+          <img className="brand-logo" src="/brand/hh-lockup-horizontal.png" alt="الصحة القابضة — Health Holding" />
+          <img className="brand-star" src="/brand/hh-star.svg" alt="الصحة القابضة — Health Holding" />
+          <span className="brand-titles">
             <strong>{t.appName}</strong>
             <small>{t.appDescriptor}</small>
           </span>
@@ -42,14 +41,12 @@ export function BrandShell({ children, lang, onLangChange, nav, compact }: Props
         </div>
       </header>
 
-      <main className="app-main page-enter">
+      <main className="app-main">
         {children}
       </main>
 
       <footer className="app-footer">
-        <span>Clinical Digital Experience</span>
-        <span className="footer-dot">•</span>
-        <span>Powered by <strong>HALRWEOLI</strong></span>
+        <span lang="en" dir="ltr">Powered by <strong>HALRWEOLI</strong></span>
       </footer>
     </div>
   )

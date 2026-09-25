@@ -12,6 +12,8 @@ export type FormItem = {
   /** Number exactly as printed in the first column of the form */
   label: string
   text: string
+  /** Arabic translation shown on the website only; the PDF always prints `text`. */
+  text_ar?: string | null
 }
 
 export type FormSection = {
@@ -25,6 +27,7 @@ export type CompetencyForm = {
   id: string
   code: string
   title: string
+  title_ar?: string | null
   category: string
   department: string | null
   file: string
