@@ -1,30 +1,32 @@
-import type { CompetencyQuestion, Rating, Score } from './types'
+import type { CompetencyForm, Rating, Score } from './types'
 
-export function scoreQuestions(
-  questions: CompetencyQuestion[],
-  answers: Record<string, Rating>,
-): Score {
-  let m = 0
-  let nm = 0
-  let na = 0
+const EMPTY: Record<Rating, number> = { M: 0, NM: 0, NA: 0, VT: 0, RD: 0, UEC: 0 }
 
-  for (const question of questions) {
-    const answer = answers[question.id]
-    if (answer === 'M') m += 1
-    if (answer === 'NM') nm += 1
-    if (answer === 'NA') na += 1
+/**
+ * Score one form the way the paper form does:
+ * Raw Score = M entries, Total Score = M + NM (NA is deducted), Met = 90% - 100%.
+ * The equipment checklist (VT/RD/UEC) has no percentage.
+ */
+export function scoreForm(form: CompetencyForm, answers: Record<string, Rating | undefined>): Score {
+  const counts = { ...EMPTY }
+  let total = 0
+  for (const section of form.sections) {
+    for (const item of section.items) {
+      total += 1
+      const answer = answers[item.id]
+      if (answer) counts[answer] += 1
+    }
   }
-
-  const answered = m + nm + na
-  const totalApplicable = m + nm
-  const percent = totalApplicable > 0 ? (m / totalApplicable) * 100 : null
-  const result = answered < questions.length
+  const answered = Object.values(counts).reduce((a, b) => a + b, 0)
+  const raw = counts.M
+  const totalApplicable = counts.M + counts.NM
+  const percent = form.scale === 'mnmna' && totalApplicable > 0 ? (raw / totalApplicable) * 100 : null
+  const result = answered < total
     ? 'Incomplete'
-    : percent !== null && percent >= 90
-      ? 'Met'
-      : 'Not Met'
-
-  return { m, nm, na, answered, totalApplicable, percent, result }
+    : form.scale === 'equipment'
+      ? 'Complete'
+      : percent !== null && percent >= 90 ? 'Met' : 'Not Met'
+  return { counts, answered, total, raw, totalApplicable, percent, result }
 }
 
 export function percentLabel(value: number | null) {

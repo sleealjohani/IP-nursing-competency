@@ -6,22 +6,37 @@ Clinical competency assessment system for inpatient nursing.
 
 ## What is included
 
-- Nurse start/resume workflow using name + job number
-- 10 mandatory inpatient nursing competencies currently seeded in Supabase
-- 225 competency statements organized by Knowledge / Skills / Attitude
-- M / NM / NA single-tap assessment
-- Autosave through secured Supabase RPC functions
-- Resume code for interrupted assessments
-- Review and final submission
-- Manager authentication with Supabase Auth
-- Manager dashboard, filters, nurse/session details and scoring
-- Evaluator profile stored once and reused
-- Optional evaluator signature upload to the private Supabase Storage bucket
-- Per-competency review/remedial details
-- Reopen / complete workflow
-- Printable official-style competency forms with handwritten-like filled values/checkmarks
-- Arabic-first RTL clinical UI with English medical source content preserved
-- Premium glass clinical design, subtle motion, floating medical icons
+- 43 competency forms as clean, vector, print-ready PDF templates (`public/forms`):
+  10 mandatory, 17 general and 16 Long stay specific competencies (780 statements)
+- Nurse flow: enter name, job number, unit, job title and contract date once, then answer every
+  statement with one of three options (M / NM / NA, or VT / RD / UEC on the equipment checklist) as
+  one continuous questionnaire that moves from form to form automatically
+- Autosave through secured Supabase RPC functions, resume code for interrupted assessments
+- Review and final submission; every form is then listed under the nurse's name for the administration
+- Evaluator portal: per-form review, comments, remedial decision and approval; "Approve all" for every
+  submitted nurse (or all forms of one nurse); reopen
+- One-click ZIP of approved forms: one PDF per nurse, named after the nurse, with every form approved for them
+- PDF output: each original form filled as if hand-written (blue-ink handwriting, hand-drawn ticks,
+  raw score and % rating, remedial decision, comments, evaluator name and signature), downloadable per
+  form or as one file with all forms
+- Arabic-first RTL clinical UI with the English source statements preserved exactly as printed
+
+## Competency forms
+
+The PDF templates in `public/forms` are the source of truth for the questionnaire:
+
+- The 27 digital forms are used exactly as provided.
+- The 16 scanned Long stay *SPECIFIC COMPETENCY* forms were re-drawn as vector PDFs by
+  `scripts/forms/gen_specific.py` from the verbatim transcription in `scripts/forms/specific.py`
+  (original wording, spelling and numbering kept).
+- `scripts/forms/build_catalog.py` reads the templates and writes `src/data/catalog.json` (the
+  questionnaire) and the Supabase content migration, so the web questions always match the printed form.
+
+```bash
+pip install pymupdf reportlab
+python3 scripts/forms/gen_specific.py public/forms   # only when the specific forms change
+python3 scripts/forms/build_catalog.py
+```
 
 ## Supabase
 
@@ -70,4 +85,4 @@ Import this GitHub repository as a new Vercel project. Framework preset: **Vite*
 
 ## Important content note
 
-The English competency statements stored in Supabase are the clinical source content. The application does not rewrite or medically “correct” those statements. Any source item marked `needs_source_review` should be reviewed against the original competency form before formal adoption.
+The English competency statements are the clinical source content, copied exactly as printed on the forms. The application does not rewrite or medically “correct” them.

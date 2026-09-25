@@ -4,7 +4,6 @@ import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react
 import { BrandShell } from './components/BrandShell'
 import { NursePortal } from './pages/NursePortal'
 import { ManagerPortal } from './pages/ManagerPortal'
-import { PrintPage } from './pages/PrintPage'
 import type { Lang } from './lib/i18n'
 
 function AppRoutes() {
@@ -16,8 +15,6 @@ function AppRoutes() {
     document.documentElement.lang = lang
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
   }, [lang])
-
-  if (location.pathname.startsWith('/print/')) return <PrintPage />
 
   const onManager = location.pathname.startsWith('/manager')
   const nav = (
