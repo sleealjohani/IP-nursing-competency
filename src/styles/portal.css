@@ -180,3 +180,21 @@ html[dir=rtl] .drawer-backdrop{justify-content:flex-start}html[dir=rtl] .session
   .table-row>span:nth-child(3){display:none}.table-row>span:nth-child(4){justify-self:end;grid-column:2;grid-row:1}
   .form-grid{grid-template-columns:1fr}.drawer-actions button span{display:none}.nurse-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Answer dock: the three answers and navigation stay pinned at the bottom of the screen,
+   so every statement is answered from the same spot without scrolling. */
+.answer-dock{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(884px,100%);z-index:30;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border:1px solid var(--line);border-bottom:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0;box-shadow:0 -8px 24px rgba(14,42,71,.1)}
+.question-wrap:has(.answer-dock){padding-bottom:40px}
+.app-shell:has(.answer-dock) .app-footer{padding-bottom:210px}
+.answer-dock .question-nav{margin-top:10px}
+.answer-dock .rating-grid button{min-height:78px}
+.question-card{margin-bottom:0}
+.question-text{min-height:9.5em}
+.question-text.medium,.question-text.long{min-height:0}
+@media(max-width:650px){.answer-dock{padding:8px 8px calc(8px + env(safe-area-inset-bottom))}.app-shell:has(.answer-dock) .app-footer{padding-bottom:180px}.answer-dock .rating-grid button{min-height:64px;padding:6px}.answer-dock .question-nav{margin-top:6px}.answer-dock .question-nav button{min-height:38px}.question-text{min-height:0}}
+.row-actions{display:flex;align-items:center;gap:4px}
+.table-row .icon-btn.danger,button.danger{color:var(--error);border-color:transparent;background:transparent}
+.table-row .icon-btn.danger:hover,button.danger:hover{background:var(--error-soft)}
+.drawer-actions button.danger{border-color:var(--error-soft)}
+@media(min-width:961px){.table-head,.table-row{grid-template-columns:minmax(180px,1.5fr) minmax(130px,.8fr) 110px 130px}}
+.app-shell:has(.answer-dock) .app-main{z-index:6}

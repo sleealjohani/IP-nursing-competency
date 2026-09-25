@@ -15,3 +15,4 @@ Current migration history on the remote project:
 - `005_all_competency_forms_schema` — rating options, equipment answers (VT/RD/UEC), nurse header details in `nurse_start` / `nurse_get`, per-form answer validation
 - content of `migrations/20260925090000_005_all_competency_forms.sql` — the 43 forms / 780 statements; the previous 225 questions were replaced and the 47 saved answers moved to the new ids (loaded 2026-09-25)
 - `006_bulk_approval` — `staff_approve_sessions(uuid[])`: approve every form for one or many submitted nurses
+- `007_delete_session` — `staff_delete_session(uuid)`: evaluator deletes a participant's assessment (answers, reviews) and the nurse record when nothing else remains

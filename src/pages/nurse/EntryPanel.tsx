@@ -28,16 +28,13 @@ export function EntryPanel({ lang, busy, message, counts, onStart, onResume }: P
       {message && <div className={`notice ${message.type}`}>{message.text}</div>}
       <details open>
         <summary><Play size={15}/>{t.begin}</summary>
-        <form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);onStart({name:String(f.get('name')||''),job_number:String(f.get('job')||''),unit:String(f.get('unit')||''),job_title:String(f.get('title')||''),contract_date:String(f.get('contract')||'')})}}>
+        <form onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);onStart({name:String(f.get('name')||''),job_number:String(f.get('job')||''),unit:String(f.get('unit')||''),job_title:String(f.get('title')||'')})}}>
           <label>{t.name}<input name="name" required maxLength={120} autoComplete="name"/></label>
           <div className="form-pair">
             <label>{t.jobNumber}<input name="job" required maxLength={30} dir="ltr" autoComplete="off" pattern="[A-Za-z0-9\-]{1,30}"/></label>
             <label>{t.unit}<input name="unit" required maxLength={80}/></label>
           </div>
-          <div className="form-pair">
-            <label>{t.jobTitle}<input name="title" required maxLength={80}/></label>
-            <label>{t.contractDate}<input name="contract" type="date" required dir="ltr"/></label>
-          </div>
+          <label>{t.jobTitle}<input name="title" required maxLength={80}/></label>
           <button className="primary" disabled={busy}><Play size={16}/>{busy?'…':t.start}</button>
         </form>
       </details>

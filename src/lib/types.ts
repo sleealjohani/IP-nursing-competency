@@ -49,7 +49,7 @@ export type NurseStartInput = {
   job_number: string
   unit: string
   job_title: string
-  contract_date: string
+  contract_date?: string
 }
 
 export type NurseSessionPayload = {

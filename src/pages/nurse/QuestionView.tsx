@@ -68,13 +68,15 @@ export function QuestionView(p:Props){
         <button className="original-toggle" onClick={()=>setShowOriginal(v=>!v)} aria-expanded={showOriginal}><Languages size={14}/>{showOriginal?t.hideOriginal:t.showOriginal}</button>
         {showOriginal&&<div className="original-text" dir="ltr" lang="en">{q.text.split('\n').map((line,i)=><span key={i}>{line}</span>)}</div>}
       </>}
-      <div className="rating-grid">{options.map((r,i)=><button key={r} aria-pressed={selected===r} className={selected===r?`selected ${r.toLowerCase()}`:''} onClick={()=>p.onChoose(r)}>{selected===r&&<span className="hand-check">✓</span>}<strong dir="ltr">{r}</strong><small>{rtl?RATING_LABEL_AR[r]:RATING_LABEL[r]}</small><kbd>{i+1}</kbd></button>)}</div>
     </GlassCard></div>
 
+    <div className="answer-dock">
+      <div className="rating-grid">{options.map((r,i)=><button key={r} aria-pressed={selected===r} className={selected===r?`selected ${r.toLowerCase()}`:''} onClick={()=>p.onChoose(r)}>{selected===r&&<span className="hand-check">✓</span>}<strong dir="ltr">{r}</strong><small>{rtl?RATING_LABEL_AR[r]:RATING_LABEL[r]}</small><kbd>{i+1}</kbd></button>)}</div>
     <div className="question-nav">
       <button disabled={!p.position} onClick={()=>p.onPosition(p.position-1)}>{rtl?<ChevronRight size={17}/>:<ChevronLeft size={17}/>} {t.previous}</button>
       <button className={allDone?'primary':''} onClick={p.onReview}><ClipboardCheck size={16}/>{t.reviewSubmit}</button>
       <button disabled={p.position>=questions.length-1||!selected} onClick={()=>p.onPosition(p.position+1)}>{t.next} {rtl?<ChevronLeft size={17}/>:<ChevronRight size={17}/>}</button>
+    </div>
     </div>
   </div>
 }
