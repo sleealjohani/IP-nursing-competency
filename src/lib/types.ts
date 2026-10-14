@@ -79,6 +79,8 @@ export type SessionRow = {
   id: string
   nurse_id: string
   status: 'in_progress' | 'submitted' | 'reopened' | 'completed'
+  /** Code the nurse uses to resume the assessment; shown to evaluators */
+  resume_code: string | null
   started_at: string
   submitted_at: string | null
   completed_at: string | null
