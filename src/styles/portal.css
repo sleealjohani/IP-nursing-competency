@@ -140,9 +140,11 @@ html[dir=rtl] .drawer-backdrop{justify-content:flex-start}html[dir=rtl] .session
 .drawer-head,.drawer-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .drawer-head h2{margin:0;color:var(--primary)}.drawer-head small{color:var(--ink-muted)}
 .drawer-actions{justify-content:flex-start;flex-wrap:wrap;margin:16px 0}
-.nurse-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+.nurse-facts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:14px}
 .nurse-facts span{background:var(--surface-sunk);border:1px solid var(--line);border-radius:var(--radius-md);padding:8px 12px;font-size:14px;display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
 .nurse-facts small{color:var(--ink-muted);font-size:11px}
+.fact-code,.row-code b{font-variant-numeric:tabular-nums;letter-spacing:.12em;color:var(--primary)}
+.table-row .row-code b{display:inline}
 .form-list{display:grid;gap:8px}
 .form-list .review-group{border:0;background:transparent;padding:14px 4px 2px}
 .form-row{padding:8px 12px;border-radius:var(--radius-lg);box-shadow:none}
